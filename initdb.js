@@ -1,5 +1,4 @@
 const db = require('./database');
-const bcrypt = require('bcryptjs');
 
 const ADMIN_NAME = 'geu';
 const ADMIN_PASS = 'admin123';

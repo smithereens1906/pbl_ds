@@ -2,7 +2,6 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../database');
-const bcrypt = require('bcryptjs'); // <-- Note: You are importing this but not using it
 
 router.post('/login', (req, res) => {
     const { username, password } = req.body;
