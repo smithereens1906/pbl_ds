@@ -1,67 +1,190 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <title>Admin</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
+  <meta charset="utf-8">
+  <title>Admin</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+
+  <style>
+    /* neon login button */
+    .login-btn{
+      background:transparent;
+      border:2px solid #22d3ee;
+      color:#22d3ee;
+      font-weight:700;
+      letter-spacing:1px;
+      border-radius:2rem;
+      padding:.75rem 2rem;
+      text-transform:uppercase;
+      transition:all .3s ease;
+      box-shadow:0 0 15px #22d3ee,inset 0 0 15px #22d3ee;
+    }
+    .login-btn:hover{
+      background:#22d3ee;
+      color:#000;
+      box-shadow:0 0 30px #22d3ee,inset 0 0 30px #22d3ee;
+    }
+    /* neon download button */
+    .neon-download{
+      background:transparent;
+      border:2px solid #00ffff;
+      color:#00ffff;
+      font-weight:700;
+      letter-spacing:1px;
+      border-radius:2rem;
+      padding:.4rem 1.4rem;
+      text-transform:uppercase;
+      transition:all .3s ease;
+      box-shadow:0 0 10px #00ffff,inset 0 0 10px #00ffff;
+      font-size:.9rem;
+    }
+    .neon-download:hover{
+      background:#00ffff;
+      color:#000;
+      box-shadow:0 0 25px #00ffff,inset 0 0 25px #00ffff;
+    }
+  </style>
 </head>
-<body class="bg-dark">
-<div class="container py-5">
-  <h2 class="gradient-text">Admin Panel</h2>
 
-    <div id="loginCard" class="glass-card p-4 mb-4" style="max-width:400px">
-    <h4 class="text-white mb-3">Login</h4>
-    <input id="user" class="form-control rounded-pill mb-2" placeholder="Username">
+<body class="bg-dark text-white d-flex align-items-center min-vh-100">
+<div class="container py-5 text-center">
+  <h2 class="gradient-text">Admin Panel</h2>
 
-<input id="pass" type="password" class="form-control rounded-pill mb-3" placeholder="Password">
-    <button id="loginBtn" class="btn btn-glow rounded-pill w-100">Login</button>
-  </div>
+  <!-- LOGIN CARD -->
+  <div id="loginCard" class="glass-card p-4 mx-auto mb-4" style="max-width:400px">
+    <h4 class="text-white mb-3">Login</h4>
+    <input id="user" class="form-control rounded-pill mb-2" placeholder="Username">
+    <input id="pass" type="password" class="form-control rounded-pill mb-3" placeholder="Password">
+    <button id="loginBtn" class="login-btn w-100">Login</button>
+  </div>
 
-    <div id="actionCard" class="glass-card p-4 d-none">
-    <button id="selectBtn" class="btn btn-glow rounded-pill mb-2">Select Best Candidate</button>
-    <button id="restoreBtn" class="btn btn-outline-cyan rounded-pill mb-2">Restore Next Best</button>
-    <div id="selectedInfo" class="alert glass-dark mt-3 d-none"></div>
-    <a href="/" class="btn btn-sm btn-outline-light rounded-pill">Back to Home</a>
-  </div>
+  <!-- ACTIONS + LISTS CARD -->
+  <div id="actionCard" class="glass-card p-4 mx-auto d-none" style="max-width:900px">
+
+    <!-- Action buttons -->
+    <button id="selectBtn" class="btn btn-glow rounded-pill mb-3 w-100">Select Best Candidate</button>
+    <button id="restoreBtn" class="btn btn-outline-cyan rounded-pill mb-4 w-100">Restore Next Best</button>
+
+    <!-- Selected info -->
+    <div id="selectedInfo" class="alert glass-dark mt-3 d-none"></div>
+
+    <!-- Lists: Approved / Pending / Rejected -->
+    <div class="row g-3 mt-2">
+
+      <!-- APPROVED (status = 1) -->
+      <div class="col-md-4">
+        <h5 class="gradient-text mb-2">Approved</h5>
+        <ul id="approvedList" class="list-group list-group-flush glass-dark">
+          <li class="list-group-item glass-dark">None</li>
+        </ul>
+      </div>
+
+      <!-- PENDING (status = 0) -->
+      <div class="col-md-4">
+        <h5 class="gradient-text mb-2">Pending</h5>
+        <ul id="pendingList" class="list-group list-group-flush glass-dark">
+          <li class="list-group-item glass-dark">None</li>
+        </ul>
+      </div>
+
+      <!-- REJECTED (status = 2) -->
+      <div class="col-md-4">
+        <h5 class="gradient-text mb-2">Rejected</h5>
+        <ul id="rejectedList" class="list-group list-group-flush glass-dark">
+          <li class="list-group-item glass-dark">None</li>
+        </ul>
+      </div>
+
+    </div><!-- /row -->
+
+    <!-- Bottom buttons -->
+    <div class="d-block mt-4">
+      <a href="/" class="btn btn-sm btn-outline-light rounded-pill w-100">Back to Home</a>
+    </div>
+
+  </div><!-- /actionCard -->
 </div>
 
 <script>
-let authed = false;
-document.getElementById('loginBtn').addEventListener('click', async ()=>{
-  const username = document.getElementById('user').value.trim();
-  const password = document.getElementById('pass').value;
-  const res = await fetch('/api/admin/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username,password})});
-  const json = await res.json();
-  if(json.success){
-    authed=true;
-    document.getElementById('loginCard').classList.add('d-none');
-    document.getElementById('actionCard').classList.remove('d-none');
-    loadSelected();
-  }else{
-    alert('Invalid credentials');
-  }
+let authed=false;
+
+/* ---------- login ---------- */
+document.getElementById('loginBtn').addEventListener('click',async()=>{
+  const username=document.getElementById('user').value.trim();
+  const password=document.getElementById('pass').value;
+  const res=await fetch('/api/admin/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username,password})});
+  const json=await res.json();
+  if(json.success){
+    authed=true;
+    document.getElementById('loginCard').classList.add('d-none');
+    document.getElementById('actionCard').classList.remove('d-none');
+    loadSelected();      // existing top banner
+    loadAllLists();      // new lists
+  }else{
+    alert('Invalid credentials');
+  }
 });
 
+/* ---------- load selected banner ---------- */
 async function loadSelected(){
-  const res = await fetch('/api/selected');
-  const r = await res.json();
-  const box = document.getElementById('selectedInfo');
-  if(r.id){
-    box.classList.remove('d-none');
-    box.innerHTML=`Currently selected: <strong>${r.name}</strong> (score ${r.score})`;
-  }else box.classList.add('d-none');
+  const res=await fetch('/api/selected');
+  const r=await res.json();
+  const box=document.getElementById('selectedInfo');
+  if(r.id){
+    box.classList.remove('d-none');
+    box.innerHTML=`Currently selected: <strong>${r.name}</strong> (score ${r.score})`;
+  }else box.classList.add('d-none');
 }
-document.getElementById('selectBtn').addEventListener('click', async ()=>{
-  await fetch('/api/select',{method:'POST'});
-  alert('Best candidate selected'); loadSelected();
+
+/* ---------- load all candidates into 3 lists ---------- */
+async function loadAllLists(){
+  const res = await fetch('/api/all');
+  const arr  = await res.json();
+
+  const approved = arr.filter(c => c.status === 1);
+  const pending  = arr.filter(c => c.status === 0);
+  const rejected = arr.filter(c => c.status === 2);
+
+  fillList('approvedList', approved);
+  fillList('pendingList',  pending);
+  fillList('rejectedList', rejected);
+}
+
+/* helper: fill <ul> with name / score / id / download button */
+function fillList(ulId, list){
+  const ul = document.getElementById(ulId);
+  ul.innerHTML = '';
+  if (!list.length) {
+    ul.innerHTML = '<li class="list-group-item glass-dark">None</li>';
+    return;
+  }
+  list.forEach(c=>{
+    ul.innerHTML += `
+      <li class="list-group-item glass-dark d-flex justify-content-between align-items-center">
+        <div>
+          <strong>${c.name}</strong> (ID: ${c.id})<br>
+          <small>Score: ${c.score}</small>
+        </div>
+        <a href="/api/generate-pdf/${c.id}" target="_blank" class="neon-download">Download</a>
+      </li>`;
+  });
+}
+
+/* ---------- action buttons ---------- */
+document.getElementById('selectBtn').addEventListener('click',async()=>{
+  await fetch('/api/select',{method:'POST'});
+  alert('Best candidate selected');
+  loadSelected();
+  loadAllLists();
 });
-document.getElementById('restoreBtn').addEventListener('click', async ()=>{
-  const res = await fetch('/api/restore',{method:'POST'});
-  const json = await res.json();
-  alert(json.error||`Restored: ${json.name} (score ${json.score})`);
-  loadSelected();
+document.getElementById('restoreBtn').addEventListener('click',async()=>{
+  const res=await fetch('/api/restore',{method:'POST'});
+  const json=await res.json();
+  alert(json.error||`Restored: ${json.name} (score ${json.score})`);
+  loadSelected();
+  loadAllLists();
 });
 </script>
 </body>

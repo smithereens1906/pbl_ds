@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Submit Résumé</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+
+  <!-- neon buttons -->
+  <style>
+  .neon-btn, .neon-btn-sm{
+    background:transparent;
+    border:2px solid #00ffff;
+    color:#00ffff;
+    font-weight:700;
+    letter-spacing:1px;
+    text-transform:uppercase;
+    transition:all .3s ease;
+    box-shadow:0 0 10px #00ffff, inset 0 0 10px #00ffff;
+    border-radius:2rem;
+    padding:.5rem 1.8rem;
+  }
+  .neon-btn-sm{ padding:.35rem 1.2rem; font-size:.9rem; }
+  .neon-btn:hover, .neon-btn-sm:hover{
+    background:#00ffff;
+    color:#000;
+    box-shadow:0 0 25px #00ffff, inset 0 0 25px #00ffff;
+  }
+  </style>
+</head>
+
+<body class="bg-dark text-white d-flex align-items-center min-vh-100">
+<div class="container py-5">
+  <h2 class="mb-4 gradient-text text-center">Résumé Management System</h2>
+
+  <form id="submitForm" class="glass-card p-4 mb-5 mx-auto" style="max-width:800px">
+    <h4 class="mb-3 text-white text-center">Submit your résumé</h4>
+    <div class="row g-3">
+
+      <!-- Personal -->
+      <div class="col-md-6"><label class="form-label">Name</label><input name="name" class="form-control rounded-pill" required></div>
+      <div class="col-md-6"><label class="form-label">Email</label><input type="email" name="email" class="form-control rounded-pill" required></div>
+      <div class="col-md-6"><label class="form-label">Phone</label><input name="phone" class="form-control rounded-pill" required></div>
+      <div class="col-md-6"><label class="form-label">Address</label><input name="address" class="form-control rounded-pill" required></div>
+
+      <!-- University Details -->
+      <div class="col-md-4"><label class="form-label">University Name</label><input name="university" class="form-control rounded-pill" required></div>
+      <div class="col-md-4"><label class="form-label">Field of Study</label><input name="field" class="form-control rounded-pill" required></div>
+      <div class="col-md-4"><label class="form-label">Graduation Year</label><input type="number" min="1900" max="2100" name="year" class="form-control rounded-pill" required></div>
+
+      <!-- Qualification -->
+      <div class="col-md-6"><label class="form-label">Qualification</label>
+        <select name="qualification" class="form-select rounded-pill" required>
+          <option>PhD</option><option>Masters</option><option>Bachelors</option><option>Other</option>
+        </select>
+      </div>
+
+      <!-- New Sections -->
+      <div class="col-md-6"><label class="form-label">Internship (Company / Role)</label><input name="internship" class="form-control rounded-pill" placeholder="e.g. ABC Corp - Software Intern"></div>
+      <div class="col-md-6"><label class="form-label">Portfolio URL</label><input name="portfolio" class="form-control rounded-pill" placeholder="https://..."></div>
+      <div class="col-md-6"><label class="form-label">Soft Skills (comma separated)</label><input name="softSkills" class="form-control rounded-pill" placeholder="e.g. Leadership, Teamwork"></div>
+
+      <div class="col-12"><label class="form-label">Technical Skills (comma separated)</label><input name="skills" class="form-control rounded-pill" placeholder="e.g. C, Python, SQL"></div>
+
+      <div class="col-12"><label class="form-label">Projects Done</label><textarea name="projects" class="form-control rounded-3" rows="3" placeholder="Brief description of projects"></textarea></div>
+      <div class="col-12"><label class="form-label">Hobbies</label><textarea name="hobbies" class="form-control rounded-3" rows="2" placeholder="Your hobbies"></textarea></div>
+
+      <div class="col-12 text-center"><button class="btn neon-btn">Submit</button></div>
+    </div>
+  </form>
+
+  <!-- Status checker (no score shown) -->
+  <div class="glass-card p-4 mx-auto" style="max-width:800px">
+    <h4 class="text-white mb-3 text-center">Check your status</h4>
+    <div class="input-group mb-3">
+      <input id="statusName" class="form-control rounded-pill" placeholder="Enter your name">
+      <button id="checkBtn" class="btn neon-btn-sm">Check</button>
+    </div>
+    <ul id="statusList" class="list-group list-group-flush"></ul>
+    <div class="text-center mt-3">
+      <button id="downloadPdfBtn" class="btn btn-glow rounded-pill d-none">Download PDF</button>
+    </div>
+  </div>
+
+  <div class="text-center mt-4"><a href="/" class="btn btn-outline-light rounded-pill px-4">Back to Home</a></div>
+</div>
+
+<script>
+let currentId = null;
+
+document.getElementById('submitForm').addEventListener('submit', async e=>{
+  e.preventDefault();
+  const body = {
+    name: e.target.name.value,
+    email: e.target.email.value,
+    phone: e.target.phone.value,
+    address: e.target.address.value,
+    university: e.target.university.value,
+    field: e.target.field.value,
+    year: e.target.year.value,
+    qualification: e.target.qualification.value,
+    internship: e.target.internship.value,
+    portfolio: e.target.portfolio.value,
+    softSkills: e.target.softSkills.value,
+    skills: e.target.skills.value,
+    projects: e.target.projects.value,
+    hobbies: e.target.hobbies.value
+  };
+  const res = await fetch('/api/resumes', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify(body)
+  });
+  const json = await res.json();
+  alert(json.error || 'Résumé submitted successfully!');
+  e.target.reset();
+});
+
+document.getElementById('checkBtn').addEventListener('click', async ()=>{
+  const name = document.getElementById('statusName').value.trim();
+  if (!name) return;
+  const res = await fetch('/api/status?name='+encodeURIComponent(name));
+  const arr  = await res.json();
+  const ul   = document.getElementById('statusList');
+  const btn  = document.getElementById('downloadPdfBtn');
+  ul.innerHTML = '';
+  btn.classList.add('d-none');
+  if (!arr.length) {
+    ul.innerHTML = '<li class="list-group-item glass-dark">No match</li>';
+    currentId = null;
+    return;
+  }
+  arr.forEach(r=>{
+    const st = r.status===1?'<span class="badge bg-cyan">SELECTED</span>':
+               r.status===2?'<span class="badge bg-danger">REJECTED</span>':
+               '<span class="badge bg-secondary">Pending</span>';
+    ul.innerHTML += `<li class="list-group-item glass-dark d-flex justify-content-between align-items-center">
+                       <span>${r.name}</span>${st}
+                     </li>`;
+  });
+  if (arr.length === 1) { currentId = arr[0].id; btn.classList.remove('d-none'); }
+  else currentId = null;
+});
+
+document.getElementById('downloadPdfBtn').addEventListener('click', ()=>{
+  if (!currentId) return;
+  window.open(`/api/generate-pdf/${currentId}`, '_blank');
+});
+</script>
+</body>
+</html>

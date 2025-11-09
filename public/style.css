@@ -79,3 +79,17 @@ h1,h2,h3,h4,h5,h6{letter-spacing:-.025em;}
   border-color:var(--border);
   color:var(--text);
 }
+
+/* ---------- dark dropdown & white input text ---------- */
+.form-select,
+.form-control,
+.form-select option{
+  background:#111827 !important;
+  color:#f9fafb !important;
+}
+.form-select option:hover,
+.form-select option:focus,
+.form-select option:checked{
+  background:var(--cyan) !important;
+  color:#000 !important;
+}
